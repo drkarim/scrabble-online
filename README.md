@@ -19,20 +19,37 @@ A fully playable real-time multiplayer Scrabble game built with React, Node.js, 
 ### Prerequisites
 - Node.js >= 18
 
-### Setup
+### First-time setup
+
+Install dependencies for both the server and client (only needed once):
 
 ```bash
-# Install all dependencies
-npm install
-
-# Start the server (in one terminal)
-npm run dev:server
-
-# Start the client (in another terminal)
-npm run dev:client
+cd /path/to/scrabble
+npm install            # installs server dependencies
+cd client && npm install   # installs client dependencies
 ```
 
-The client runs at http://localhost:5173 and the server at http://localhost:3000.
+### Running the game
+
+You need **two terminal windows** open at the same time.
+
+**Terminal 1 — Backend:**
+```bash
+cd /path/to/scrabble
+npm run dev:server
+```
+You should see: `Scrabble server running on port 3000`
+
+**Terminal 2 — Frontend:**
+```bash
+cd /path/to/scrabble
+npm run dev:client
+```
+You should see: `Local: http://localhost:5173/`
+
+Then open **http://localhost:5173** in your browser.
+
+The Vite dev server automatically proxies Socket.IO traffic to port 3000, so no URL changes are needed.
 
 ### Word List
 

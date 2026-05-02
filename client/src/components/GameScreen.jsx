@@ -107,7 +107,8 @@ export default function GameScreen({ emit }) {
   const {
     board, players, currentPlayerId, playerId, rack,
     pendingPlacements, selectedTileId,
-    placeTile, recallTiles, setSelectedTile, setBlankLetter,
+    placeTile, recallTiles, removePendingTile, movePendingTile,
+    setSelectedTile, setBlankLetter,
     lastMoveResult, clearLastMoveResult,
   } = useGameStore();
 
@@ -155,28 +156,47 @@ export default function GameScreen({ emit }) {
     const { active, over } = event;
     setActiveDrag(null);
 
-    if (!over || !isMyTurn) return;
+    if (!isMyTurn) return;
 
-    const tile = active.data.current?.tile;
+    const data = active.data.current;
+    const tile = data?.tile;
     if (!tile) return;
+
+    const isFromBoard = data?.source === 'board';
+    const fromRow = data?.fromRow;
+    const fromCol = data?.fromCol;
+
+    // Dropped on nothing — if from board, return tile to rack
+    if (!over) {
+      if (isFromBoard) removePendingTile(fromRow, fromCol);
+      return;
+    }
 
     const overId = over.id;
 
-    // Dropped on a board cell
     if (overId.startsWith('cell-')) {
       const [, rowStr, colStr] = overId.split('-');
-      const row = parseInt(rowStr);
-      const col = parseInt(colStr);
+      const toRow = parseInt(rowStr);
+      const toCol = parseInt(colStr);
 
-      if (tile.isBlank) {
-        setBlankDialog({ tileId: tile.id, row, col });
+      if (isFromBoard) {
+        // Move pending tile to a different cell
+        movePendingTile(fromRow, fromCol, toRow, toCol);
       } else {
-        placeTile(tile.id, row, col);
+        // Place rack tile onto the board
+        if (tile.isBlank) {
+          setBlankDialog({ tileId: tile.id, row: toRow, col: toCol });
+        } else {
+          placeTile(tile.id, toRow, toCol);
+        }
       }
+    } else if (overId.startsWith('rack-slot-')) {
+      // Dropped on the rack — return board tile to rack
+      if (isFromBoard) removePendingTile(fromRow, fromCol);
     }
-    // Dropped back on rack — do nothing (tile stays in rack if not placed)
-  }, [isMyTurn, placeTile]);
+  }, [isMyTurn, placeTile, removePendingTile, movePendingTile]);
 
+  // Click an empty cell to place the selected rack tile there
   const handleCellClick = useCallback((row, col) => {
     if (!isMyTurn || !selectedTileId) return;
     const tile = rack.find(t => t.id === selectedTileId);
@@ -188,6 +208,12 @@ export default function GameScreen({ emit }) {
       placeTile(tile.id, row, col);
     }
   }, [isMyTurn, selectedTileId, rack, placeTile]);
+
+  // Click a pending tile on the board to return it to the rack
+  const handlePendingTileClick = useCallback((row, col) => {
+    if (!isMyTurn) return;
+    removePendingTile(row, col);
+  }, [isMyTurn, removePendingTile]);
 
   const handleBlankSelect = (letter) => {
     if (blankDialog) {
@@ -264,7 +290,7 @@ export default function GameScreen({ emit }) {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <Board onCellClick={handleCellClick} />
+            <Board onCellClick={handleCellClick} onPendingTileClick={handlePendingTileClick} />
 
             {/* Tile Rack */}
             <div className="w-full mt-2">

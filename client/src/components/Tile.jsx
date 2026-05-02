@@ -1,10 +1,10 @@
 import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
 
-export function Tile({ tile, isUncommitted = false, isSelected = false, onClick, size = 'md' }) {
+export function Tile({ tile, isUncommitted = false, isSelected = false, onClick, size = 'md', dragData = {} }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: tile.id,
-    data: { tile },
+    data: { tile, ...dragData },
     disabled: !tile,
   });
 

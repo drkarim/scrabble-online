@@ -3,7 +3,7 @@ import BoardCell from './BoardCell';
 import { COL_LABELS, BOARD_SIZE } from '../utils/boardLayout';
 import { useGameStore } from '../hooks/useGameState';
 
-export default function Board({ onCellClick }) {
+export default function Board({ onCellClick, onPendingTileClick }) {
   const { board, pendingPlacements } = useGameStore();
 
   const pendingMap = useMemo(() => {
@@ -80,6 +80,7 @@ export default function Board({ onCellClick }) {
                     tile={boardTile}
                     pendingTile={pending}
                     onCellClick={onCellClick}
+                    onPendingTileClick={onPendingTileClick}
                     cellSize={cellSize}
                   />
                 );

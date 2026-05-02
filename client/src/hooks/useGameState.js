@@ -105,6 +105,35 @@ export const useGameStore = create((set, get) => ({
     return true;
   },
 
+  // Return a single pending tile from the board back to the rack
+  removePendingTile: (row, col) => {
+    const { rack, pendingPlacements } = get();
+    const placement = pendingPlacements.find(p => p.row === row && p.col === col);
+    if (!placement) return;
+    set({
+      rack: [...rack, {
+        id: placement.tileId,
+        letter: placement.letter,
+        value: placement.value,
+        isBlank: placement.isBlank,
+      }],
+      pendingPlacements: pendingPlacements.filter(p => !(p.row === row && p.col === col)),
+    });
+  },
+
+  // Move a pending tile from one board cell to another
+  movePendingTile: (fromRow, fromCol, toRow, toCol) => {
+    const { pendingPlacements, board } = get();
+    if (fromRow === toRow && fromCol === toCol) return;
+    if (board?.grid?.[toRow]?.[toCol]) return; // committed tile there
+    if (pendingPlacements.some(p => p.row === toRow && p.col === toCol)) return; // pending tile there
+    set({
+      pendingPlacements: pendingPlacements.map(p =>
+        p.row === fromRow && p.col === fromCol ? { ...p, row: toRow, col: toCol } : p
+      ),
+    });
+  },
+
   setBlankLetter: (tileId, letter) => {
     const { pendingPlacements } = get();
     set({

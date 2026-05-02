@@ -80,7 +80,7 @@ export function Tile({ tile, isUncommitted = false, isSelected = false, onClick,
 }
 
 // Static (non-draggable) tile for the board
-export function StaticTile({ tile, isUncommitted = false, size = 'md' }) {
+export function StaticTile({ tile, isUncommitted = false, size = 'md', animClassName = '', animStyle = {} }) {
   const sizeMap = {
     sm: { outer: 28, font: 13, sub: 7 },
     md: { outer: 40, font: 18, sub: 9 },
@@ -92,8 +92,8 @@ export function StaticTile({ tile, isUncommitted = false, size = 'md' }) {
 
   return (
     <div
-      className={`scrabble-tile flex items-center justify-center relative ${isUncommitted ? 'uncommitted' : ''}`}
-      style={{ width: s.outer, height: s.outer }}
+      className={`scrabble-tile flex items-center justify-center relative ${isUncommitted ? 'uncommitted' : ''} ${animClassName}`}
+      style={{ width: s.outer, height: s.outer, ...animStyle }}
     >
       <span style={{
         fontFamily: '"IM Fell English", "Playfair Display", serif',

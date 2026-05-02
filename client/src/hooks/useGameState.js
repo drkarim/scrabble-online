@@ -22,6 +22,10 @@ export const useGameStore = create((set, get) => ({
   gameOver: false,
   winner: null,
   lastMoveResult: null,
+  // Animation: cells placed in the most recent opponent/bot move
+  // Each entry: { row, col, delay } where delay is stagger ms
+  lastPlacedCells: [],
+  opponentMoveAnnouncement: null, // { playerName, words, score }
 
   // Actions
   setScreen: (screen) => set({ screen }),
@@ -44,16 +48,61 @@ export const useGameStore = create((set, get) => ({
   },
 
   handleStateUpdate: (state) => {
+    const { board: oldBoard, moveLog: oldMoveLog, playerId } = get();
+
+    // Diff old vs new board to find newly placed cells
+    const newCells = [];
+    if (oldBoard?.grid && state.board?.grid) {
+      for (let r = 0; r < 15; r++) {
+        for (let c = 0; c < 15; c++) {
+          if (!oldBoard.grid[r][c] && state.board.grid[r][c]) {
+            newCells.push({ row: r, col: c });
+          }
+        }
+      }
+    }
+
+    // Sort cells for left-to-right / top-to-bottom stagger
+    if (newCells.length > 1) {
+      const allSameRow = newCells.every(c => c.row === newCells[0].row);
+      newCells.sort((a, b) => allSameRow ? a.col - b.col : a.row - b.row);
+    }
+    const lastPlacedCells = newCells.map((cell, i) => ({ ...cell, delay: i * 90 }));
+
+    // Detect if the latest log entry is from another player (opponent or bot)
+    const newLog = state.moveLog || [];
+    const latestEntry = newLog[newLog.length - 1];
+    const oldLength = (oldMoveLog || []).length;
+    let opponentMoveAnnouncement = null;
+    if (latestEntry && newLog.length > oldLength && latestEntry.playerId !== playerId && latestEntry.type === 'play') {
+      opponentMoveAnnouncement = {
+        playerName: latestEntry.playerName,
+        words: latestEntry.words,
+        score: latestEntry.score,
+      };
+    }
+
     set({
       board: state.board,
       players: state.players,
       currentPlayerId: state.currentPlayerId,
       tilesInBag: state.tilesInBag,
-      moveLog: state.moveLog || [],
+      moveLog: newLog,
       gameOver: state.gameOver,
       winner: state.winner,
+      lastPlacedCells,
+      opponentMoveAnnouncement,
     });
+
     if (state.gameOver) set({ screen: 'gameover' });
+
+    // Clear animation state after tiles finish animating
+    if (lastPlacedCells.length > 0) {
+      const totalDuration = (lastPlacedCells.length - 1) * 90 + 2500;
+      setTimeout(() => {
+        useGameStore.setState({ lastPlacedCells: [], opponentMoveAnnouncement: null });
+      }, totalDuration);
+    }
   },
 
   handleTileUpdate: ({ rack }) => set({ rack }),

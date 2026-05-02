@@ -4,7 +4,7 @@ import { COL_LABELS, BOARD_SIZE } from '../utils/boardLayout';
 import { useGameStore } from '../hooks/useGameState';
 
 export default function Board({ onCellClick, onPendingTileClick }) {
-  const { board, pendingPlacements } = useGameStore();
+  const { board, pendingPlacements, lastPlacedCells } = useGameStore();
 
   const pendingMap = useMemo(() => {
     const m = {};
@@ -13,6 +13,15 @@ export default function Board({ onCellClick, onPendingTileClick }) {
     }
     return m;
   }, [pendingPlacements]);
+
+  // Map of "row,col" -> stagger delay for the animation
+  const animMap = useMemo(() => {
+    const m = {};
+    for (const c of lastPlacedCells) {
+      m[`${c.row},${c.col}`] = c.delay;
+    }
+    return m;
+  }, [lastPlacedCells]);
 
   if (!board) return null;
 
@@ -82,6 +91,7 @@ export default function Board({ onCellClick, onPendingTileClick }) {
                     onCellClick={onCellClick}
                     onPendingTileClick={onPendingTileClick}
                     cellSize={cellSize}
+                    animDelay={animMap[key]}
                   />
                 );
               })

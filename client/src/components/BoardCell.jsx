@@ -3,7 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { getSquareType, SQUARE_COLORS } from '../utils/boardLayout';
 import { Tile, StaticTile } from './Tile';
 
-export default function BoardCell({ row, col, tile, pendingTile, onCellClick, onPendingTileClick, cellSize }) {
+export default function BoardCell({ row, col, tile, pendingTile, onCellClick, onPendingTileClick, cellSize, animDelay }) {
   const squareType = getSquareType(row, col);
   const isCenter = row === 7 && col === 7;
 
@@ -42,7 +42,12 @@ export default function BoardCell({ row, col, tile, pendingTile, onCellClick, on
       }}
     >
       {tile && !pendingTile && (
-        <StaticTile tile={tile} size={sz >= 44 ? 'md' : 'sm'} />
+        <StaticTile
+          tile={tile}
+          size={sz >= 44 ? 'md' : 'sm'}
+          animClassName={animDelay !== undefined ? 'tile-just-placed' : ''}
+          animStyle={animDelay !== undefined ? { animationDelay: `${animDelay}ms` } : {}}
+        />
       )}
 
       {pendingTile && (

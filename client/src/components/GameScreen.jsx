@@ -110,6 +110,7 @@ export default function GameScreen({ emit }) {
     placeTile, recallTiles, removePendingTile, movePendingTile,
     setSelectedTile, setBlankLetter,
     lastMoveResult, clearLastMoveResult,
+    opponentMoveAnnouncement,
   } = useGameStore();
 
   const [activeDrag, setActiveDrag] = useState(null);
@@ -267,7 +268,7 @@ export default function GameScreen({ emit }) {
         </div>
       )}
 
-      {/* Notification */}
+      {/* My move result notification */}
       {notification && (
         <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-sm font-semibold slide-in"
           style={{
@@ -277,6 +278,38 @@ export default function GameScreen({ emit }) {
             boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
           }}>
           {notification.msg}
+        </div>
+      )}
+
+      {/* Opponent / bot move banner */}
+      {opponentMoveAnnouncement && (
+        <div
+          className="fixed z-50 opponent-banner-enter"
+          style={{
+            top: 64,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            pointerEvents: 'none',
+          }}
+        >
+          <div className="px-5 py-3 rounded-2xl text-center"
+            style={{
+              background: 'linear-gradient(135deg, #1a2a3a 0%, #0f1a24 100%)',
+              border: '1px solid #3d6a8a',
+              boxShadow: '0 6px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(100,160,210,0.15)',
+              minWidth: 200,
+            }}>
+            <div className="text-xs mb-1" style={{ color: '#6aaacc' }}>
+              {opponentMoveAnnouncement.playerName} played
+            </div>
+            <div className="text-lg font-bold tracking-widest font-cinzel"
+              style={{ color: '#c8a46e', letterSpacing: '0.15em' }}>
+              {opponentMoveAnnouncement.words.join(', ')}
+            </div>
+            <div className="text-sm font-bold mt-1" style={{ color: '#5aaa6a' }}>
+              +{opponentMoveAnnouncement.score} pts
+            </div>
+          </div>
         </div>
       )}
 
